@@ -1,5 +1,19 @@
 {
   "name": "@apex-hour/contracts",
   "version": "0.0.0",
-  "private": true
+  "private": true,
+  "type": "module",
+  "dependencies": {
+    "zod": "4.4.3"
+  },
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "default": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist"
+  ]
 }

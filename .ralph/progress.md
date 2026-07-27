@@ -18,3 +18,13 @@ Each passing entry includes: story ID, UTC timestamp, files changed, exact comma
 - Security: npm audit reported 0 vulnerabilities.
 - Evidence: `docs/evidence/TASK-001.md`.
 - Commit: `build(TASK-001): create the npm workspace and pinned toolchain`.
+
+## FND-002 — 2026-07-28
+
+- The bounded worker timed out after writing a partial tree; the parent inspected it, replaced its resolver monkey-patch with Microsoft's documented TypeScript 7/6 side-by-side alias pattern, removed generated source artifacts, and completed the story.
+- TypeScript 7.0.2 is the native `tsc`; `@typescript/typescript6` supplies the programmatic API used by typescript-eslint until TypeScript 7.1.
+- Observed: `npx tsc --version` = 7.0.2; tooling TypeScript API = 6.0.3; `npm run check` exited 0.
+- Real checks: Prettier passed, ESLint parsed/linted TypeScript sources, strict project references passed, two Zod contract tests passed, and outputs built under ignored `dist/` paths.
+- All eight workspaces expose explicit ESM/type export maps; source trees contain only source/test files.
+- Evidence appended to `docs/evidence/TASK-001.md`.
+- Commit: `build(TASK-001): enforce strict TypeScript references and Zod inference`.

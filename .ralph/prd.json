@@ -26,8 +26,8 @@
       "id": "FND-002",
       "priority": 2,
       "title": "Enforce strict TypeScript references and Zod inference",
-      "status": "pending",
-      "attempts": 0,
+      "status": "passed",
+      "attempts": 1,
       "dependsOn": ["FND-001"],
       "allowedPrefixes": ["package.json", "package-lock.json", "tsconfig", "eslint", ".prettier", "apps/", "packages/", ".ralph/", "docs/evidence/"],
       "acceptance": [

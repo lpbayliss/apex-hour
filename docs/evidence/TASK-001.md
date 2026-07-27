@@ -32,3 +32,34 @@ npm ci && npm run check
 - Root scripts contain `format:check`, `lint`, `typecheck`, `test`, `build`, and `check`.
 - `package-lock.json` is committed with this story.
 - Node 24 execution remains explicitly assigned to FND-004 CI; this story does not claim it was observed locally.
+
+## FND-002 — strict TypeScript references and Zod inference
+
+**Date:** 2026-07-28
+
+The first worker timed out with an uncommitted partial implementation. Parent verification replaced a private module-resolution monkey-patch with Microsoft's documented TypeScript 7 side-by-side layout:
+
+- `@typescript/native` aliases `typescript@7.0.2` and provides `tsc`;
+- `typescript` aliases `@typescript/typescript6@6.0.2` for utilities requiring the programmatic API, including typescript-eslint.
+
+### Observed commands
+
+```text
+npm install
+npx tsc --version
+node -e "console.log(require('typescript').version)"
+npm run check
+```
+
+**Observed result:** all exited 0.
+
+- Native compiler: TypeScript 7.0.2.
+- Tooling compatibility API reported TypeScript 6.0.3 from the official compatibility package.
+- `format:check`: passed.
+- ESLint 10 + typescript-eslint parsed and linted all TypeScript source/test files; passed.
+- Strict TypeScript project-reference typecheck: passed.
+- Vitest: one file, two Zod schema/inferred-type tests passed.
+- Build: passed; outputs and build metadata are emitted under ignored workspace `dist/` directories.
+- Package check: all eight workspaces have explicit ESM/type export maps.
+- Source check: generated `.js`, `.d.ts`, and maps were removed from `src`.
+- npm audit: 0 vulnerabilities.
