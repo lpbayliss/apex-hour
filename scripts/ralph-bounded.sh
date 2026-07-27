@@ -38,16 +38,15 @@ for ((iteration=1; iteration<=requested; iteration++)); do
 Exact story for this fresh iteration:
 $story_json"
 
-  timeout --signal=TERM --kill-after=30s 30m \
+  printf '%s' "$prompt" | timeout --signal=TERM --kill-after=30s 30m \
     claude --print \
       --no-session-persistence \
       --disable-slash-commands \
       --permission-mode acceptEdits \
       --effort high \
       --max-budget-usd 5 \
-      --allowedTools 'Read,Write,Edit,Glob,Grep,Bash(npm *),Bash(node *),Bash(git status *),Bash(git diff *),Bash(git add *),Bash(git commit *),Bash(git rev-parse *),Bash(git branch *)' \
-      --disallowedTools 'WebSearch,WebFetch' \
-      "$prompt"
+      --allowedTools='Read,Write,Edit,Glob,Grep,Bash(npm *),Bash(node *),Bash(git status *),Bash(git diff *),Bash(git add *),Bash(git commit *),Bash(git rev-parse *),Bash(git branch *)' \
+      --disallowedTools='WebSearch,WebFetch'
 
   after="$(git rev-parse HEAD)"
   node scripts/ralph-state.mjs validate "$story" "$before" "$after"
