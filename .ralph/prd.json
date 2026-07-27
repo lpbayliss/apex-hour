@@ -1,0 +1,74 @@
+{
+  "task": "TASK-001",
+  "title": "Repository/toolchain baseline",
+  "branch": "feat/foundation",
+  "maxIterationsPerRun": 3,
+  "maxAttemptsPerStory": 2,
+  "stories": [
+    {
+      "id": "FND-001",
+      "priority": 1,
+      "title": "Create the npm workspace and pinned toolchain",
+      "status": "pending",
+      "attempts": 0,
+      "dependsOn": [],
+      "allowedPrefixes": ["package.json", "package-lock.json", "tsconfig", ".nvmrc", ".node-version", ".gitignore", "apps/", "packages/", ".ralph/", "docs/evidence/"],
+      "acceptance": [
+        "npm workspaces exist for apps/server, apps/web, packages/contracts, packages/simulation, packages/database, packages/config, packages/observability, packages/testing",
+        "Node 24 and exact direct versions from TASK-001 are pinned",
+        "root scripts include format:check, lint, typecheck, test, build and check",
+        "npm install produces a committed package-lock.json",
+        "npm run check passes from a clean install"
+      ],
+      "verify": "npm ci && npm run check"
+    },
+    {
+      "id": "FND-002",
+      "priority": 2,
+      "title": "Enforce strict TypeScript references and Zod inference",
+      "status": "pending",
+      "attempts": 0,
+      "dependsOn": ["FND-001"],
+      "allowedPrefixes": ["package.json", "package-lock.json", "tsconfig", "eslint", ".prettier", "apps/", "packages/", ".ralph/", "docs/evidence/"],
+      "acceptance": [
+        "strict shared TypeScript settings and project references compile on TypeScript 7",
+        "each workspace has an explicit package export map",
+        "contracts contains a Zod schema with an inferred exported TypeScript type and executable test",
+        "format, lint, typecheck, test and build all pass"
+      ],
+      "verify": "npm run check"
+    },
+    {
+      "id": "FND-003",
+      "priority": 3,
+      "title": "Add executable simulation-boundary checks",
+      "status": "pending",
+      "attempts": 0,
+      "dependsOn": ["FND-002"],
+      "allowedPrefixes": ["package.json", "scripts/check-boundaries.mjs", "packages/simulation/", ".ralph/", "docs/evidence/"],
+      "acceptance": [
+        "checker rejects web, database, telemetry, config, environment, filesystem, process, wall-clock and Math.random imports/usages in packages/simulation",
+        "a negative fixture is rejected for the intended rule only",
+        "production simulation source passes",
+        "npm run check includes the positive boundary check and all gates pass"
+      ],
+      "verify": "npm run test:boundaries && npm run check"
+    },
+    {
+      "id": "FND-004",
+      "priority": 4,
+      "title": "Add Node 24 CI and fresh-clone evidence",
+      "status": "pending",
+      "attempts": 0,
+      "dependsOn": ["FND-003"],
+      "allowedPrefixes": [".github/workflows/", "package.json", ".ralph/", "docs/evidence/", "README.md"],
+      "acceptance": [
+        "CI uses Node 24, npm ci, documentation checks and npm run check",
+        "workflow has read-only permissions and a bounded timeout",
+        "TASK-001 evidence records observed fresh-install and full-check output",
+        "working tree is clean after one story commit"
+      ],
+      "verify": "npm ci && node scripts/check-docs.mjs && npm run check"
+    }
+  ]
+}
