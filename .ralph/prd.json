@@ -9,8 +9,8 @@
       "id": "FND-001",
       "priority": 1,
       "title": "Create the npm workspace and pinned toolchain",
-      "status": "pending",
-      "attempts": 0,
+      "status": "passed",
+      "attempts": 1,
       "dependsOn": [],
       "allowedPrefixes": ["package.json", "package-lock.json", "tsconfig", ".nvmrc", ".node-version", ".gitignore", "apps/", "packages/", ".ralph/", "docs/evidence/"],
       "acceptance": [

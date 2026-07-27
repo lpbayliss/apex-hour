@@ -1,0 +1,41 @@
+{
+  "name": "apex-hour",
+  "version": "0.0.0",
+  "private": true,
+  "engines": {
+    "node": "24.x"
+  },
+  "workspaces": [
+    "apps/server",
+    "apps/web",
+    "packages/contracts",
+    "packages/simulation",
+    "packages/database",
+    "packages/config",
+    "packages/observability",
+    "packages/testing"
+  ],
+  "scripts": {
+    "format:check": "prettier --check package.json tsconfig.json \"apps/*/package.json\" \"apps/*/tsconfig.json\" \"packages/*/package.json\" \"packages/*/tsconfig.json\"",
+    "lint": "eslint --no-config-lookup --no-error-on-unmatched-pattern \"apps/**/*.js\" \"packages/**/*.js\"",
+    "typecheck": "tsc -b --pretty false",
+    "test": "vitest run --passWithNoTests",
+    "build": "tsc -b --pretty false",
+    "check": "npm run format:check && npm run lint && npm run typecheck && npm run test && npm run build"
+  },
+  "dependencies": {
+    "@hono/node-server": "2.0.12",
+    "@trpc/server": "11.18.0",
+    "hono": "4.12.32",
+    "react": "19.2.8",
+    "react-dom": "19.2.8",
+    "zod": "4.4.3"
+  },
+  "devDependencies": {
+    "eslint": "10.8.0",
+    "prettier": "3.9.6",
+    "typescript": "7.0.2",
+    "vite": "8.1.5",
+    "vitest": "4.1.10"
+  }
+}
