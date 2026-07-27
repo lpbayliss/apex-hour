@@ -28,3 +28,13 @@ Each passing entry includes: story ID, UTC timestamp, files changed, exact comma
 - All eight workspaces expose explicit ESM/type export maps; source trees contain only source/test files.
 - Evidence appended to `docs/evidence/TASK-001.md`.
 - Commit: `build(TASK-001): enforce strict TypeScript references and Zod inference`.
+
+## FND-003 — 2026-07-28
+
+- The bounded worker stopped before recording/committing; the parent inspected the partial implementation and ran every required gate before accepting it.
+- Added a TypeScript-AST boundary checker covering web/server, database, observability, config, Node/outside imports plus environment, Node globals, random, wall-clock and timer usage.
+- Observed: `npm run test:boundaries && npm run check && node scripts/check-docs.mjs` exited 0.
+- The negative fixture produced each of the 11 stable rule codes exactly once; production simulation source was clean.
+- Full formatting, TypeScript lint/typecheck, two contract tests, build, boundary check, and documentation checks passed.
+- Evidence appended to `docs/evidence/TASK-001.md`.
+- Commit: `build(TASK-001): add executable simulation boundary checks`.

@@ -42,8 +42,8 @@
       "id": "FND-003",
       "priority": 3,
       "title": "Add executable simulation-boundary checks",
-      "status": "pending",
-      "attempts": 0,
+      "status": "passed",
+      "attempts": 1,
       "dependsOn": ["FND-002"],
       "allowedPrefixes": ["package.json", "scripts/check-boundaries.mjs", "packages/simulation/", ".ralph/", "docs/evidence/"],
       "acceptance": [

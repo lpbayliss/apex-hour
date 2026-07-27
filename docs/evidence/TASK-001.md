@@ -63,3 +63,24 @@ npm run check
 - Package check: all eight workspaces have explicit ESM/type export maps.
 - Source check: generated `.js`, `.d.ts`, and maps were removed from `src`.
 - npm audit: 0 vulnerabilities.
+
+## FND-003 — executable simulation-boundary checks
+
+**Date:** 2026-07-28
+
+The bounded worker stopped with an uncommitted partial implementation. The parent inspected the AST checker and fixture, then ran all required verification before accepting the story.
+
+### Observed command
+
+```text
+npm run test:boundaries && npm run check && node scripts/check-docs.mjs
+```
+
+**Observed result:** exit 0.
+
+- Boundary self-test: production simulation source clean.
+- Negative fixture: exactly one instance of each of 11 stable rule codes covering forbidden web/server, database, observability, config, Node built-in, outside-package imports, environment access, Node globals, random, wall clock, and timer APIs.
+- Prettier and TypeScript ESLint: passed.
+- Strict TypeScript project-reference typecheck/build: passed.
+- Vitest: one file and two contract tests passed.
+- Documentation checks: passed across 22 Markdown files.
