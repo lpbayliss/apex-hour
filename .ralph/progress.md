@@ -55,3 +55,13 @@ Each passing entry includes: story ID, UTC timestamp, files changed, exact comma
 - README now explicitly states that only foundation work exists and all product entrypoints remain placeholders.
 - Remote GitHub Actions execution is not claimed because this story commit has not been pushed.
 - Commit: `ci(TASK-001): add Node 24 repository checks`.
+
+## TASK-002 / TRN-001 — 2026-07-28
+
+- Began TASK-002 using the native Hermes `bounded-ralph-loop` skill; no worker process or delegated implementer was used.
+- Added a real ephemeral Node server where Hono mounts the official tRPC Fetch adapter at `/trpc`.
+- Added an in-memory DB-style projection store with two-row catch-up pages, race-scoped publication cursors, listener-before-high-water ordering, duplicate suppression, and abort cleanup.
+- Focused real-wire test observed a tRPC query plus tracked SSE through `eventsource`; an event inserted during catch-up arrived after persisted events with exact cursor order and no duplicate from a deliberate republish.
+- Observed `npm run spike:transport:server`: strict TypeScript check and 1 real-wire Vitest test passed.
+- Observed spike Prettier and ESLint checks passed; npm audit reported 0 vulnerabilities.
+- Commit: `test(TASK-002): wire Hono tRPC tracked SSE server`.

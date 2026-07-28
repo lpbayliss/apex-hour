@@ -1,107 +1,77 @@
 {
-  "task": "TASK-001",
-  "title": "Repository/toolchain baseline",
-  "branch": "feat/foundation",
+  "task": "TASK-002",
+  "title": "Real-wire Hono/tRPC tracked-SSE spike",
+  "branch": "main",
   "maxIterationsPerRun": 3,
   "maxAttemptsPerStory": 2,
   "stories": [
     {
-      "id": "FND-001",
+      "id": "TRN-001",
       "priority": 1,
-      "title": "Create the npm workspace and pinned toolchain",
+      "title": "Wire Hono to the official tRPC Fetch adapter",
       "status": "passed",
       "attempts": 1,
       "dependsOn": [],
       "allowedPrefixes": [
+        "spikes/trpc-hono-sse/",
         "package.json",
         "package-lock.json",
-        "tsconfig",
-        ".nvmrc",
-        ".node-version",
-        ".gitignore",
-        "apps/",
-        "packages/",
         ".ralph/",
         "docs/evidence/"
       ],
       "acceptance": [
-        "npm workspaces exist for apps/server, apps/web, packages/contracts, packages/simulation, packages/database, packages/config, packages/observability, packages/testing",
-        "Node 24 and exact direct versions from TASK-001 are pinned",
-        "root scripts include format:check, lint, typecheck, test, build and check",
-        "npm install produces a committed package-lock.json",
-        "npm run check passes from a clean install"
+        "A real ephemeral Node HTTP server mounts a tRPC query and tracked SSE subscription through Hono using the official Fetch adapter",
+        "The in-memory DB-style store uses bounded catch-up pages and race-scoped publication cursors",
+        "The subscription registers its listener before capturing the high-water mark and preserves deterministic catch-up/live ordering",
+        "Focused wire tests prove query, content type, tracked cursor, event insertion during catch-up, duplicate suppression, and abort cleanup"
       ],
-      "verify": "npm ci && npm run check"
+      "verify": "npm run spike:transport:server"
     },
     {
-      "id": "FND-002",
+      "id": "TRN-002",
       "priority": 2,
-      "title": "Enforce strict TypeScript references and Zod inference",
-      "status": "passed",
-      "attempts": 1,
-      "dependsOn": ["FND-001"],
+      "title": "Drive the Vite client through a streaming proxy in Playwright",
+      "status": "pending",
+      "attempts": 0,
+      "dependsOn": ["TRN-001"],
       "allowedPrefixes": [
+        "spikes/trpc-hono-sse/",
         "package.json",
         "package-lock.json",
-        "tsconfig",
-        "eslint",
-        ".prettier",
-        "apps/",
-        "packages/",
         ".ralph/",
         "docs/evidence/"
       ],
       "acceptance": [
-        "strict shared TypeScript settings and project references compile on TypeScript 7",
-        "each workspace has an explicit package export map",
-        "contracts contains a Zod schema with an inferred exported TypeScript type and executable test",
-        "format, lint, typecheck, test and build all pass"
+        "Vite builds the browser client and an actual Chromium page connects with tRPC httpSubscriptionLink through a real reverse-proxy fixture",
+        "The proxy disables SSE buffering and preserves heartbeat/idle streaming headers",
+        "Browser reconnect resumes from the exact tracked cursor without gaps or duplicates",
+        "Browser unsubscribe aborts the server subscription and releases its listener"
       ],
-      "verify": "npm run check"
+      "verify": "npm run spike:transport:browser"
     },
     {
-      "id": "FND-003",
+      "id": "TRN-003",
       "priority": 3,
-      "title": "Add executable simulation-boundary checks",
-      "status": "passed",
-      "attempts": 1,
-      "dependsOn": ["FND-002"],
+      "title": "Complete the transport resilience matrix and decision record",
+      "status": "pending",
+      "attempts": 0,
+      "dependsOn": ["TRN-002"],
       "allowedPrefixes": [
+        "spikes/trpc-hono-sse/",
         "package.json",
-        "scripts/check-boundaries.mjs",
-        "packages/simulation/",
-        ".ralph/",
-        "docs/evidence/"
-      ],
-      "acceptance": [
-        "checker rejects web, database, telemetry, config, environment, filesystem, process, wall-clock and Math.random imports/usages in packages/simulation",
-        "a negative fixture is rejected for the intended rule only",
-        "production simulation source passes",
-        "npm run check includes the positive boundary check and all gates pass"
-      ],
-      "verify": "npm run test:boundaries && npm run check"
-    },
-    {
-      "id": "FND-004",
-      "priority": 4,
-      "title": "Add Node 24 CI and fresh-clone evidence",
-      "status": "passed",
-      "attempts": 1,
-      "dependsOn": ["FND-003"],
-      "allowedPrefixes": [
-        ".github/workflows/",
-        "package.json",
+        "package-lock.json",
         ".ralph/",
         "docs/evidence/",
-        "README.md"
+        "docs/spikes/trpc-hono-sse.md",
+        "docs/adr/0004-trpc-sse.md"
       ],
       "acceptance": [
-        "CI uses Node 24, npm ci, documentation checks and npm run check",
-        "workflow has read-only permissions and a bounded timeout",
-        "TASK-001 evidence records observed fresh-install and full-check output",
-        "working tree is clean after one story commit"
+        "Wire tests cover bounded queue overflow with resumable cursor, heartbeat/idle behavior, terminal error after headers, and proxy cleanup",
+        "npm run spike:transport starts all fixtures, drives the real browser, runs the complete matrix, and exits cleanly",
+        "The exact adapter/version matrix and observed evidence are recorded",
+        "ADR-0004 is accepted only if every named TASK-002 wire case passes"
       ],
-      "verify": "npm ci && node scripts/check-docs.mjs && npm run check"
+      "verify": "npm run spike:transport && npm run check"
     }
   ]
 }

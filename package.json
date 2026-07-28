@@ -13,7 +13,8 @@
     "packages/database",
     "packages/config",
     "packages/observability",
-    "packages/testing"
+    "packages/testing",
+    "spikes/trpc-hono-sse"
   ],
   "scripts": {
     "format:check": "prettier --check package.json package-lock.json tsconfig.json tsconfig.base.json eslint.config.mjs scripts/check-boundaries.mjs \"apps/**/*.{json,ts}\" \"packages/**/*.{json,ts}\"",
@@ -22,6 +23,7 @@
     "test": "vitest run",
     "test:boundaries": "node scripts/check-boundaries.mjs --self-test",
     "check:boundaries": "node scripts/check-boundaries.mjs",
+    "spike:transport:server": "tsc -p spikes/trpc-hono-sse/tsconfig.json --pretty false && vitest run --config spikes/trpc-hono-sse/vitest.config.ts test/server.wire.test.ts",
     "build": "tsc -b --pretty false",
     "check": "npm run format:check && npm run lint && npm run typecheck && npm run test && npm run build && npm run check:boundaries"
   },
