@@ -57,14 +57,23 @@ describe("Vite browser client through a streaming reverse proxy", () => {
         ),
       ).toEqual([cursorFor(RACE_ID, 1), cursorFor(RACE_ID, 2)]);
 
+      await page.waitForTimeout(2_200);
+      store.insert(RACE_ID, "heartbeat-survived-idle-window");
+      await page.waitForFunction(
+        () => window.transportSpike.state.events.length === 3,
+      );
+      expect(
+        await page.evaluate(() => window.transportSpike.state.connected),
+      ).toBe(true);
+
       await page.evaluate(() => window.transportSpike.disconnect());
       await eventually(() => expect(store.listenerCount()).toBe(0));
 
-      store.insert(RACE_ID, "launch");
-      store.insert(RACE_ID, "lead-change");
+      store.insert(RACE_ID, "launch-after-reconnect");
+      store.insert(RACE_ID, "lead-change-after-reconnect");
       await page.evaluate(() => window.transportSpike.connect());
       await page.waitForFunction(
-        () => window.transportSpike.state.events.length === 4,
+        () => window.transportSpike.state.events.length === 5,
       );
 
       const state = await page.evaluate(() => window.transportSpike.state);
@@ -73,9 +82,10 @@ describe("Vite browser client through a streaming reverse proxy", () => {
         cursorFor(RACE_ID, 2),
         cursorFor(RACE_ID, 3),
         cursorFor(RACE_ID, 4),
+        cursorFor(RACE_ID, 5),
       ]);
-      expect(new Set(state.events.map((event) => event.id)).size).toBe(4);
-      expect(state.lastEventId).toBe(cursorFor(RACE_ID, 4));
+      expect(new Set(state.events.map((event) => event.id)).size).toBe(5);
+      expect(state.lastEventId).toBe(cursorFor(RACE_ID, 5));
       expect(state.errors).toEqual([]);
       expect(streamHeaders?.["content-type"]).toContain("text/event-stream");
       expect(streamHeaders?.["x-accel-buffering"]).toBe("no");

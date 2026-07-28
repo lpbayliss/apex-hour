@@ -75,3 +75,14 @@ Each passing entry includes: story ID, UTC timestamp, files changed, exact comma
 - Browser received cursors 1–2, unsubscribed and released the server listener, then reconnected with cursor 2 and received 3–4 with no gaps or duplicates; proxy streaming headers were observed in the browser response.
 - Spike Prettier and ESLint checks passed.
 - Commit: `test(TASK-002): prove Vite proxy browser reconnect`.
+
+## TASK-002 / TRN-003 — 2026-07-28
+
+- Added bounded slow-consumer queues. Capacity overflow terminates with `SSE_QUEUE_OVERFLOW` plus the last delivered race publication cursor; a new subscription catches up every remaining persisted event.
+- Added a post-header terminal-error case: one tracked event is delivered before a non-retryable serialized tRPC error, followed by listener cleanup.
+- Extended the real-browser test beyond the two-second proxy timeout; 100 ms SSE heartbeats kept the stream alive and a later event arrived without reconnect.
+- Added and syntax-validated an Nginx 1.29.5 compatibility configuration with buffering/cache disabled and bounded read/send timeout.
+- Observed `npm run spike:transport`: strict TypeScript and all 4 wire tests across 3 files passed and every server/browser/proxy fixture exited.
+- Repeated the complete spike in `mcr.microsoft.com/playwright:v1.62.0-noble` on Node v24.18.0/npm 11.16.0 after a clean `npm ci`; all 4 tests passed and audit found 0 vulnerabilities.
+- Recorded the exact matrix and accepted ADR-0004 with the official tRPC Fetch adapter. No second adapter was added because the preferred adapter passed every decision case.
+- Commit: `test(TASK-002): accept tracked SSE transport spike`.

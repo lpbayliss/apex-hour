@@ -53,8 +53,8 @@
       "id": "TRN-003",
       "priority": 3,
       "title": "Complete the transport resilience matrix and decision record",
-      "status": "pending",
-      "attempts": 0,
+      "status": "passed",
+      "attempts": 1,
       "dependsOn": ["TRN-002"],
       "allowedPrefixes": [
         "spikes/trpc-hono-sse/",
@@ -63,7 +63,8 @@
         ".ralph/",
         "docs/evidence/",
         "docs/spikes/trpc-hono-sse.md",
-        "docs/adr/0004-trpc-sse.md"
+        "docs/adr/0004-trpc-sse.md",
+        "scripts/check-docs.mjs"
       ],
       "acceptance": [
         "Wire tests cover bounded queue overflow with resumable cursor, heartbeat/idle behavior, terminal error after headers, and proxy cleanup",

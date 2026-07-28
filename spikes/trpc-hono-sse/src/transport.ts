@@ -5,7 +5,7 @@ import {
   httpSubscriptionLink,
   splitLink,
 } from "@trpc/client";
-import { initTRPC, tracked } from "@trpc/server";
+import { initTRPC, tracked, TRPCError } from "@trpc/server";
 import { fetchRequestHandler } from "@trpc/server/adapters/fetch";
 import { EventSource } from "eventsource";
 import { Hono } from "hono";
@@ -36,11 +36,26 @@ export function sequenceFromCursor(
   return Number(match[2]);
 }
 
+export type ProjectionStoreOptions = {
+  queueLimit?: number;
+  liveYieldDelayMs?: number;
+  terminalAfterSequence?: number;
+};
+
 export class ProjectionStore {
   readonly #events: Projection[] = [];
   readonly #listeners = new Set<(event: Projection) => void>();
   #afterPageRead: ((page: number) => void | Promise<void>) | undefined;
   #pagesRead = 0;
+  readonly queueLimit: number;
+  readonly liveYieldDelayMs: number;
+  readonly terminalAfterSequence: number | undefined;
+
+  constructor(options: ProjectionStoreOptions = {}) {
+    this.queueLimit = options.queueLimit ?? 256;
+    this.liveYieldDelayMs = options.liveYieldDelayMs ?? 0;
+    this.terminalAfterSequence = options.terminalAfterSequence;
+  }
 
   insert(raceId: string, message: string): Projection {
     const sequence =
@@ -100,30 +115,63 @@ export class ProjectionStore {
   }
 }
 
+export class QueueOverflowError extends Error {
+  constructor() {
+    super("SSE queue capacity exceeded");
+    this.name = "QueueOverflowError";
+  }
+}
+
 class AsyncQueue<T> implements AsyncIterableIterator<T> {
   readonly #values: T[] = [];
-  readonly #waiters: Array<(result: IteratorResult<T>) => void> = [];
+  readonly #waiters: Array<{
+    resolve: (result: IteratorResult<T>) => void;
+    reject: (error: unknown) => void;
+  }> = [];
+  readonly #capacity: number;
   #closed = false;
+  #failure: unknown;
+
+  constructor(capacity: number) {
+    this.#capacity = capacity;
+  }
 
   push(value: T): void {
     if (this.#closed) return;
     const waiter = this.#waiters.shift();
-    if (waiter) waiter({ done: false, value });
-    else this.#values.push(value);
+    if (waiter) {
+      waiter.resolve({ done: false, value });
+      return;
+    }
+    if (this.#values.length >= this.#capacity) {
+      this.fail(new QueueOverflowError());
+      return;
+    }
+    this.#values.push(value);
   }
 
   close(): void {
     if (this.#closed) return;
     this.#closed = true;
     for (const waiter of this.#waiters.splice(0))
-      waiter({ done: true, value: undefined });
+      waiter.resolve({ done: true, value: undefined });
+  }
+
+  fail(error: unknown): void {
+    if (this.#closed) return;
+    this.#closed = true;
+    this.#failure = error;
+    for (const waiter of this.#waiters.splice(0)) waiter.reject(error);
   }
 
   next(): Promise<IteratorResult<T>> {
     const value = this.#values.shift();
     if (value !== undefined) return Promise.resolve({ done: false, value });
+    if (this.#failure) return Promise.reject(this.#failure);
     if (this.#closed) return Promise.resolve({ done: true, value: undefined });
-    return new Promise((resolve) => this.#waiters.push(resolve));
+    return new Promise((resolve, reject) =>
+      this.#waiters.push({ resolve, reject }),
+    );
   }
 
   [Symbol.asyncIterator](): AsyncIterableIterator<T> {
@@ -151,7 +199,7 @@ export function createRouter(store: ProjectionStore) {
       input,
       signal,
     }) {
-      const queue = new AsyncQueue<Projection>();
+      const queue = new AsyncQueue<Projection>(store.queueLimit);
       const unsubscribe = store.listen((event) => {
         if (event.raceId === input.raceId) queue.push(event);
       });
@@ -181,7 +229,27 @@ export function createRouter(store: ProjectionStore) {
           if (event.sequence <= lastSequence) continue;
           lastSequence = event.sequence;
           yield tracked(event.cursor, event);
+          if (store.terminalAfterSequence === event.sequence) {
+            throw new TRPCError({
+              code: "BAD_REQUEST",
+              message: `SPIKE_TERMINAL_AFTER_HEADERS resume=${event.cursor}`,
+            });
+          }
+          if (store.liveYieldDelayMs > 0) {
+            await new Promise((resolve) =>
+              setTimeout(resolve, store.liveYieldDelayMs),
+            );
+          }
         }
+      } catch (error) {
+        if (error instanceof QueueOverflowError) {
+          throw new TRPCError({
+            code: "TOO_MANY_REQUESTS",
+            message: `SSE_QUEUE_OVERFLOW resume=${cursorFor(input.raceId, lastSequence)}`,
+            cause: error,
+          });
+        }
+        throw error;
       } finally {
         signal?.removeEventListener("abort", abort);
         unsubscribe();
