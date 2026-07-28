@@ -53,3 +53,62 @@ git diff --check
 ```
 
 **Observed result:** exit 0. npm audited 168 packages with 0 vulnerabilities. The config workspace ran 16 tests across merge precedence, array replacement, leaf provenance, JSON object/array and scalar decoding, unknown/invalid environment inputs, empty/null behavior, URL credential diagnostics, YAML parser boundaries, file-size limits, and optional/explicit file handling. Full repository checks passed with 26 total production-package tests.
+
+## CFG-002 — redaction, paths, and compatibility matrix
+
+**Date:** 2026-07-28
+
+### Delivered
+
+- Strict-write and same-major compatible-read event schemas share one authoritative envelope. Compatible readers preserve additive envelope/payload fields and reject unsupported schema majors with `EVENT_SCHEMA_UNSUPPORTED`.
+- Metadata-driven recursive redaction emits `[REDACTED]` for secrets and `[PATH]` for filesystem-sensitive values.
+- Production containment covers database path, backup directory, declared config file, and the actual loaded config path. The named outside-root override is development-only.
+- Hostile fixtures cover nested arrays/JSON objects, URL credentials and query tokens, embedded bearer tokens, paths, unknown keys, and parser failures.
+- Both committed example config surfaces execute through the resolver.
+
+### Operations section 9 boundary table
+
+| Boundary                                                | Observed fixture                                |
+| ------------------------------------------------------- | ----------------------------------------------- |
+| recursive objects; scalar replacement                   | YAML/environment precedence fixture             |
+| arrays replace whole arrays                             | default/YAML/environment origin-list fixture    |
+| unknown prefixed environment fails                      | `CONFIG_ENV_UNKNOWN` table row                  |
+| empty values remain strings unless explicitly nullable  | public-origin/config-file rows                  |
+| exact boolean/finite decimal/null/JSON/string decode    | environment decode table                        |
+| duplicate/custom-tag/alias/expansion/size parser limits | strict YAML table                               |
+| missing optional vs configured/unreadable file          | file adapter table                              |
+| final leaf provenance                                   | default/YAML/environment assertions             |
+| recursive metadata redaction                            | path/token redacted output fixture              |
+| production path allowlists                              | database/backup/config/actual-loaded path table |
+| development-only override                               | development/production paired fixture           |
+| safe schema paths/reason codes                          | hostile URL/token/path/parser assertions        |
+
+### Observed commands
+
+```text
+npm run test --workspace @apex-hour/contracts
+npm run test --workspace @apex-hour/config
+npm run typecheck
+npx eslint 'packages/contracts/**/*.ts' 'packages/config/**/*.ts'
+npm run check
+node scripts/check-docs.mjs
+git diff --check
+```
+
+**Observed local result:** exit 0. Contracts: 11 tests. Config: 24 tests. Full repository: 35 tests plus formatting, lint, TypeScript, build, and simulation-boundary checks.
+
+### Clean Node 24 result
+
+Executed in `node:24-bookworm-slim` from a read-only source copy with all installed/build artifacts excluded:
+
+```text
+node=v24.18.0
+npm=11.16.0
+npm ci
+npm run test --workspace @apex-hour/contracts
+npm run test --workspace @apex-hour/config
+npm run check
+node scripts/check-docs.mjs
+```
+
+**Observed result:** exit 0; 168 packages audited with 0 vulnerabilities, 11 contracts tests passed, 24 config tests passed, full 35-test repository check passed, and documentation checks passed across 24 Markdown files.

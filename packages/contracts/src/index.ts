@@ -72,6 +72,12 @@ export const versionIdentifierSchema = z
   .normalize("NFC");
 export type VersionIdentifier = z.infer<typeof versionIdentifierSchema>;
 
+export const schemaVersionSchema = z
+  .string()
+  .regex(/^[1-9]\d*\.\d+\.\d+$/u)
+  .brand<"SchemaVersion">();
+export type SchemaVersion = z.infer<typeof schemaVersionSchema>;
+
 const positiveSequenceSchema = z.number().int().safe().positive();
 const eventTypeSchema = z
   .string()
@@ -128,37 +134,57 @@ export function formatRaceFeedCursor(
 
 export function canonicalEventSchema<TPayload extends z.ZodType>(
   payloadSchema: TPayload,
+  options: { allowAdditiveEnvelopeFields?: boolean } = {},
 ) {
-  return z
-    .object({
-      eventId: eventIdSchema,
-      aggregateKind: aggregateKindSchema,
-      aggregateId: aggregateIdSchema,
-      streamSequence: positiveSequenceSchema,
-      context: eventContextSchema.optional(),
-      eventType: eventTypeSchema,
-      schemaVersion: versionIdentifierSchema,
-      simulationRulesetVersion: versionIdentifierSchema,
-      catalogVersion: versionIdentifierSchema,
-      logicalTime: z.number().int().safe().nonnegative(),
-      plannedInstant: z.iso.datetime({ offset: true }).optional(),
-      commandId: commandIdSchema,
-      idempotencyKey: stableKeySchema,
-      causationEventId: eventIdSchema.optional(),
-      correlationId: correlationIdSchema,
-      payload: payloadSchema,
-    })
-    .strict()
-    .superRefine((event, context) => {
-      const expected = `${event.aggregateKind}/${event.aggregateId}/${event.streamSequence}`;
-      if (event.eventId !== expected) {
-        context.addIssue({
-          code: "custom",
-          path: ["eventId"],
-          message: "EVENT_ID_MISMATCH",
-        });
-      }
-    });
+  const envelope = z.object({
+    eventId: eventIdSchema,
+    aggregateKind: aggregateKindSchema,
+    aggregateId: aggregateIdSchema,
+    streamSequence: positiveSequenceSchema,
+    context: eventContextSchema.optional(),
+    eventType: eventTypeSchema,
+    schemaVersion: schemaVersionSchema,
+    simulationRulesetVersion: versionIdentifierSchema,
+    catalogVersion: versionIdentifierSchema,
+    logicalTime: z.number().int().safe().nonnegative(),
+    plannedInstant: z.iso.datetime({ offset: true }).optional(),
+    commandId: commandIdSchema,
+    idempotencyKey: stableKeySchema,
+    causationEventId: eventIdSchema.optional(),
+    correlationId: correlationIdSchema,
+    payload: payloadSchema,
+  });
+  const configuredEnvelope = options.allowAdditiveEnvelopeFields
+    ? envelope.passthrough()
+    : envelope.strict();
+  return configuredEnvelope.superRefine((event, context) => {
+    const expected = `${event.aggregateKind}/${event.aggregateId}/${event.streamSequence}`;
+    if (event.eventId !== expected) {
+      context.addIssue({
+        code: "custom",
+        path: ["eventId"],
+        message: "EVENT_ID_MISMATCH",
+      });
+    }
+  });
+}
+
+export function compatibleCanonicalEventSchema<TShape extends z.ZodRawShape>(
+  payloadSchema: z.ZodObject<TShape>,
+  supportedSchemaMajor: number,
+) {
+  return canonicalEventSchema(payloadSchema.passthrough(), {
+    allowAdditiveEnvelopeFields: true,
+  }).superRefine((event, context) => {
+    const major = Number(event.schemaVersion.split(".", 1)[0]);
+    if (major !== supportedSchemaMajor) {
+      context.addIssue({
+        code: "custom",
+        path: ["schemaVersion"],
+        message: "EVENT_SCHEMA_UNSUPPORTED",
+      });
+    }
+  });
 }
 
 export type CanonicalEvent<TPayload extends z.ZodType> = z.infer<

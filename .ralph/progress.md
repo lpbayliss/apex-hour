@@ -106,3 +106,14 @@ Each passing entry includes: story ID, UTC timestamp, files changed, exact comma
 - Added `.env.example` and `config.example.yaml` matching the root schema.
 - Observed `npm run test --workspace @apex-hour/config`: 16 tests passed; package ESLint, `npm run typecheck`, and full `npm run check` passed; npm audit found 0 vulnerabilities.
 - Commit: `feat(TASK-003): implement strict config resolution`.
+
+## TASK-003 / CFG-002 — 2026-07-28
+
+- Added same-major compatibility parsing that preserves additive envelope/payload fields while strict write validation still rejects unknown fields; unsupported schema majors fail with `EVENT_SCHEMA_UNSUPPORTED`.
+- Added recursive metadata-driven redaction for bearer tokens and filesystem-sensitive fields, including null-preserving config-file handling.
+- Added production containment for database, backup, declared config, and actual loaded config paths. The single named outside-root override works only in development and is rejected in production.
+- Added hostile compatibility coverage for nested arrays/JSON objects, credentials/query tokens in URLs, embedded bearer tokens, parser failures, unknown YAML keys, example files, and every operations-contract section 9 row.
+- Confirmed public `AppConfig`, IDs, ratings, event, and cursor types are Zod-inferred with no duplicate handwritten public shape.
+- Observed package tests: 11 contracts + 24 config tests passed; full repository check passed with 35 tests.
+- Repeated cleanly in `node:24-bookworm-slim` on Node v24.18.0/npm 11.16.0 after `npm ci`; 0 vulnerabilities and all checks passed.
+- Commit: `test(TASK-003): complete config compatibility matrix`.

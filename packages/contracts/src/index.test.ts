@@ -5,6 +5,7 @@ import {
   aggregateIdSchema,
   canonicalEventSchema,
   commandIdSchema,
+  compatibleCanonicalEventSchema,
   correlationIdSchema,
   formatEventId,
   formatRaceFeedCursor,
@@ -109,6 +110,27 @@ describe("canonical aggregate event envelope", () => {
     expect(() =>
       eventSchema.parse({ ...validEvent(), payload: { lap: -1, note: "bad" } }),
     ).toThrow();
+  });
+
+  it("accepts additive v1 envelope/payload fields but rejects another schema major", () => {
+    const compatibleReader = compatibleCanonicalEventSchema(payloadSchema, 1);
+    const additiveFixture = {
+      ...validEvent(),
+      futureEnvelopeField: "preserved",
+      payload: {
+        ...validEvent().payload,
+        futurePayloadField: { nested: ["preserved"] },
+      },
+    };
+
+    const parsed = compatibleReader.parse(additiveFixture);
+    expect(parsed.futureEnvelopeField).toBe("preserved");
+    expect(parsed.payload.futurePayloadField).toEqual({
+      nested: ["preserved"],
+    });
+    expect(() =>
+      compatibleReader.parse({ ...additiveFixture, schemaVersion: "2.0.0" }),
+    ).toThrow("EVENT_SCHEMA_UNSUPPORTED");
   });
 });
 

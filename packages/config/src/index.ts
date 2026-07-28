@@ -5,11 +5,25 @@ import { parseDocument, visit } from "yaml";
 import { z } from "zod";
 
 const pathStringSchema = z.string().min(1).max(4096);
+function isPathInsideRoot(value: string, root: string): boolean {
+  if (!path.isAbsolute(value) || !path.isAbsolute(root)) return false;
+  const resolvedValue = path.resolve(value);
+  const resolvedRoot = path.resolve(root);
+  const relative = path.relative(resolvedRoot, resolvedValue);
+  return (
+    relative === "" ||
+    (!relative.startsWith("..") && !path.isAbsolute(relative))
+  );
+}
+
 const publicOriginSchema = z.url().superRefine((value, context) => {
   if (!URL.canParse(value)) return;
   const url = new URL(value);
-  if (url.username || url.password) {
-    context.addIssue({ code: "custom", message: "URL_CREDENTIALS_FORBIDDEN" });
+  if (url.username || url.password || url.search || url.hash) {
+    context.addIssue({
+      code: "custom",
+      message: "URL_CREDENTIALS_OR_QUERY_FORBIDDEN",
+    });
   }
 });
 
@@ -109,14 +123,7 @@ export const appConfigSchema = z
             ] as const)
           : []),
       ] as const) {
-        const resolvedValue = path.resolve(value);
-        const resolvedRoot = path.resolve(root);
-        const relative = path.relative(resolvedRoot, resolvedValue);
-        if (
-          !path.isAbsolute(value) ||
-          (relative !== "" &&
-            (relative.startsWith("..") || path.isAbsolute(relative)))
-        ) {
+        if (!isPathInsideRoot(value, root)) {
           context.addIssue({
             code: "custom",
             path: [...field],
@@ -531,8 +538,16 @@ export async function loadConfigFile(options: {
   ) {
     throw new ConfigError("CONFIG_YAML_TOO_LARGE", "config.file");
   }
-  return resolveConfig({
+  const resolved = resolveConfig({
     yamlText,
     ...(options.environment ? { environment: options.environment } : {}),
   });
+  if (
+    (resolved.config.mode === "production" ||
+      !resolved.config.paths.allowOutsideRootsInDevelopment) &&
+    !isPathInsideRoot(options.filePath, resolved.config.paths.configRoot)
+  ) {
+    throw new ConfigError("CONFIG_VALIDATION", "config.file");
+  }
+  return resolved;
 }

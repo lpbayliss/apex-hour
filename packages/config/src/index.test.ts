@@ -1,6 +1,7 @@
-import { mkdtemp, mkdir, rm, writeFile } from "node:fs/promises";
+import { mkdtemp, mkdir, readFile, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import path from "node:path";
+import { fileURLToPath } from "node:url";
 
 import { afterEach, describe, expect, it } from "vitest";
 
@@ -162,6 +163,15 @@ metrics:
     expectConfigError(() => parseYamlConfig(yaml), "CONFIG_YAML_PARSE", yaml);
   });
 
+  it("rejects unknown YAML keys during the single final schema validation", () => {
+    const unknownValue = "must-not-be-echoed";
+    expectConfigError(
+      () => resolveConfig({ yamlText: `unknownField: ${unknownValue}` }),
+      "CONFIG_VALIDATION",
+      unknownValue,
+    );
+  });
+
   it("rejects expansion before parsing", () => {
     expectConfigError(
       () => parseYamlConfig(`mode: ${"x".repeat(256)}`, 64),
@@ -189,7 +199,11 @@ describe("configuration file behavior", () => {
     const directory = await mkdtemp(path.join(tmpdir(), "apex-hour-config-"));
     temporaryDirectories.push(directory);
     const file = path.join(directory, "config.yaml");
-    await writeFile(file, "server:\n  port: 4400\n", "utf8");
+    await writeFile(
+      file,
+      "mode: development\npaths:\n  allowOutsideRootsInDevelopment: true\nserver:\n  port: 4400\n",
+      "utf8",
+    );
     await expect(loadConfigFile({ filePath: file })).resolves.toMatchObject({
       config: { server: { port: 4400 } },
     });
@@ -203,5 +217,143 @@ describe("configuration file behavior", () => {
       expect(error).toMatchObject({ code: "CONFIG_FILE_UNREADABLE" });
       expect((error as Error).message).not.toContain(unreadable);
     }
+
+    const productionFile = path.join(directory, "production.yaml");
+    await writeFile(productionFile, "mode: production\n", "utf8");
+    await expect(
+      loadConfigFile({ filePath: productionFile }),
+    ).rejects.toMatchObject({
+      code: "CONFIG_VALIDATION",
+      configPath: "config.file",
+    });
+  });
+});
+
+describe("operations config boundary compatibility table", () => {
+  it("recursively redacts schema-marked secrets and filesystem paths", () => {
+    const token = "embedded-production-token-value";
+    const result = resolveConfig({
+      environment: {
+        APEX_HOUR__METRICS__BEARER_TOKEN: token,
+        APEX_HOUR__CONFIG__FILE: "/config/private/config.yaml",
+      },
+    });
+
+    expect(result.redacted).toMatchObject({
+      database: { path: "[PATH]" },
+      backup: { directory: "[PATH]" },
+      config: { file: "[PATH]" },
+      metrics: { bearerToken: "[REDACTED]" },
+      paths: {
+        dataRoot: "[PATH]",
+        configRoot: "[PATH]",
+        backupRoot: "[PATH]",
+      },
+    });
+    expect(JSON.stringify(result.redacted)).not.toContain(token);
+    expect(result.provenance["metrics.bearerToken"]).toBe("environment");
+  });
+
+  it.each([
+    [
+      "database.path",
+      (config: typeof defaultConfig) =>
+        (config.database.path = "/tmp/db.sqlite3"),
+    ],
+    [
+      "backup.directory",
+      (config: typeof defaultConfig) =>
+        (config.backup.directory = "/tmp/backup"),
+    ],
+    [
+      "config.file",
+      (config: typeof defaultConfig) =>
+        (config.config.file = "/tmp/config.yaml"),
+    ],
+  ])(
+    "rejects production %s outside its allowlisted root",
+    (expectedPath, mutate) => {
+      const defaults = structuredClone(defaultConfig);
+      mutate(defaults);
+      try {
+        resolveConfig({ defaults });
+        throw new Error("Expected path validation failure");
+      } catch (error) {
+        expect(error).toMatchObject({
+          code: "CONFIG_VALIDATION",
+          configPath: expectedPath,
+        });
+        expect((error as Error).message).not.toContain("/tmp/");
+      }
+    },
+  );
+
+  it("permits only the named development path override outside roots", () => {
+    const development = structuredClone(defaultConfig);
+    development.mode = "development";
+    development.paths.allowOutsideRootsInDevelopment = true;
+    development.database.path = "./local.sqlite3";
+    development.backup.directory = "./local-backup";
+    development.config.file = "./local.yaml";
+    expect(resolveConfig({ defaults: development }).config.mode).toBe(
+      "development",
+    );
+
+    const production = structuredClone(development);
+    production.mode = "production";
+    expectConfigError(
+      () => resolveConfig({ defaults: production }),
+      "CONFIG_VALIDATION",
+    );
+
+    const developmentWithoutOverride = structuredClone(development);
+    developmentWithoutOverride.paths.allowOutsideRootsInDevelopment = false;
+    expectConfigError(
+      () => resolveConfig({ defaults: developmentWithoutOverride }),
+      "CONFIG_VALIDATION",
+    );
+  });
+
+  it("rejects token-bearing origin query strings without echoing them", () => {
+    const unsafeOrigin = "https://example.com/?access_token=embedded-secret";
+    expectConfigError(
+      () =>
+        resolveConfig({
+          environment: { APEX_HOUR__SERVER__PUBLIC_ORIGIN: unsafeOrigin },
+        }),
+      "CONFIG_VALIDATION",
+      unsafeOrigin,
+    );
+  });
+
+  it("loads both committed example surfaces through the production resolver", async () => {
+    const repositoryRoot = fileURLToPath(new URL("../../../", import.meta.url));
+    const yamlText = await readFile(
+      path.join(repositoryRoot, "config.example.yaml"),
+      "utf8",
+    );
+    expect(resolveConfig({ yamlText }).config).toMatchObject({
+      mode: "production",
+      database: { path: "/data/apex-hour.sqlite3" },
+    });
+
+    const envText = await readFile(
+      path.join(repositoryRoot, ".env.example"),
+      "utf8",
+    );
+    const environment = Object.fromEntries(
+      envText
+        .split("\n")
+        .filter((line) => line && !line.startsWith("#"))
+        .map((line) => {
+          const separator = line.indexOf("=");
+          return [line.slice(0, separator), line.slice(separator + 1)];
+        }),
+    );
+    expect(resolveConfig({ environment }).config).toMatchObject({
+      mode: "production",
+      server: { port: 3000 },
+      simulation: { raceIntervalSeconds: 3600 },
+    });
   });
 });

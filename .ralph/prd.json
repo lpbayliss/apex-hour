@@ -47,8 +47,8 @@
       "id": "CFG-002",
       "priority": 3,
       "title": "Complete config metadata, redaction, path, and compatibility fixtures",
-      "status": "pending",
-      "attempts": 0,
+      "status": "passed",
+      "attempts": 1,
       "dependsOn": ["CFG-001"],
       "allowedPrefixes": [
         "packages/contracts/",
