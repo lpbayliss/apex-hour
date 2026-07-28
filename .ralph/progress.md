@@ -45,3 +45,13 @@ Each passing entry includes: story ID, UTC timestamp, files changed, exact comma
 - Durable `.ralph/prd.json` and `.ralph/progress.md` remain; implementation now runs through the Hermes `bounded-ralph-loop` skill in the current session.
 - Removed `.ralph/PROMPT.md`, `scripts/ralph-bounded.sh`, and `scripts/ralph-state.mjs`.
 - This is a process correction, not a completed product story. FND-004 remains pending and no application vertical slice is claimed.
+
+## FND-004 — 2026-07-28
+
+- Replaced docs-only CI with one read-only, concurrency-bounded `check` workflow using Node 24, npm cache, `npm ci`, documentation validation, and the full repository gate.
+- Observed host command: `npm ci && node scripts/check-docs.mjs && npm run check` exited 0; the host correctly warned that it runs Node 22 rather than the required Node 24.
+- Observed clean-copy target-runtime command: `docker run ... node:24-bookworm-slim ... npm ci; node scripts/check-docs.mjs; npm run check` exited 0 on Node v24.18.0/npm 11.16.0 with 0 vulnerabilities, 2 tests passed, build and boundary checks passed.
+- Observed workflow validation: `rhysd/actionlint:latest .github/workflows/check.yml` exited 0 after normalizing the workflow mode to 0644.
+- README now explicitly states that only foundation work exists and all product entrypoints remain placeholders.
+- Remote GitHub Actions execution is not claimed because this story commit has not been pushed.
+- Commit: `ci(TASK-001): add Node 24 repository checks`.

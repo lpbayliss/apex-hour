@@ -12,7 +12,18 @@
       "status": "passed",
       "attempts": 1,
       "dependsOn": [],
-      "allowedPrefixes": ["package.json", "package-lock.json", "tsconfig", ".nvmrc", ".node-version", ".gitignore", "apps/", "packages/", ".ralph/", "docs/evidence/"],
+      "allowedPrefixes": [
+        "package.json",
+        "package-lock.json",
+        "tsconfig",
+        ".nvmrc",
+        ".node-version",
+        ".gitignore",
+        "apps/",
+        "packages/",
+        ".ralph/",
+        "docs/evidence/"
+      ],
       "acceptance": [
         "npm workspaces exist for apps/server, apps/web, packages/contracts, packages/simulation, packages/database, packages/config, packages/observability, packages/testing",
         "Node 24 and exact direct versions from TASK-001 are pinned",
@@ -29,7 +40,17 @@
       "status": "passed",
       "attempts": 1,
       "dependsOn": ["FND-001"],
-      "allowedPrefixes": ["package.json", "package-lock.json", "tsconfig", "eslint", ".prettier", "apps/", "packages/", ".ralph/", "docs/evidence/"],
+      "allowedPrefixes": [
+        "package.json",
+        "package-lock.json",
+        "tsconfig",
+        "eslint",
+        ".prettier",
+        "apps/",
+        "packages/",
+        ".ralph/",
+        "docs/evidence/"
+      ],
       "acceptance": [
         "strict shared TypeScript settings and project references compile on TypeScript 7",
         "each workspace has an explicit package export map",
@@ -45,7 +66,13 @@
       "status": "passed",
       "attempts": 1,
       "dependsOn": ["FND-002"],
-      "allowedPrefixes": ["package.json", "scripts/check-boundaries.mjs", "packages/simulation/", ".ralph/", "docs/evidence/"],
+      "allowedPrefixes": [
+        "package.json",
+        "scripts/check-boundaries.mjs",
+        "packages/simulation/",
+        ".ralph/",
+        "docs/evidence/"
+      ],
       "acceptance": [
         "checker rejects web, database, telemetry, config, environment, filesystem, process, wall-clock and Math.random imports/usages in packages/simulation",
         "a negative fixture is rejected for the intended rule only",
@@ -58,10 +85,16 @@
       "id": "FND-004",
       "priority": 4,
       "title": "Add Node 24 CI and fresh-clone evidence",
-      "status": "pending",
-      "attempts": 0,
+      "status": "passed",
+      "attempts": 1,
       "dependsOn": ["FND-003"],
-      "allowedPrefixes": [".github/workflows/", "package.json", ".ralph/", "docs/evidence/", "README.md"],
+      "allowedPrefixes": [
+        ".github/workflows/",
+        "package.json",
+        ".ralph/",
+        "docs/evidence/",
+        "README.md"
+      ],
       "acceptance": [
         "CI uses Node 24, npm ci, documentation checks and npm run check",
         "workflow has read-only permissions and a bounded timeout",

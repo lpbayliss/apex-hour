@@ -4,7 +4,9 @@ A fictional, continuously running motorcycle-racing universe. Every season conta
 
 ## Status
 
-Specification accepted after independent product/domain, architecture/security/operations, and agent-readiness reviews. The governing contract is [`docs/specification.md`](docs/specification.md); implementation evidence remains explicitly tracked as Planned or Observed.
+Specification accepted after independent product/domain, architecture/security/operations, and agent-readiness reviews. The governing contract is [`docs/specification.md`](docs/specification.md); implementation evidence is tracked in [`docs/traceability.md`](docs/traceability.md).
+
+**Current implementation:** TASK-001 foundation only—npm workspaces, TypeScript 7/tooling compatibility, contract and boundary tests, and Node 24 CI. The Hono service, race simulation, persistence, API, UI, and Docker image are not implemented yet; their entrypoints remain placeholders. TASK-002 is the next implementation gate.
 
 ## Intended architecture
 

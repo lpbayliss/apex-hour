@@ -84,3 +84,43 @@ npm run test:boundaries && npm run check && node scripts/check-docs.mjs
 - Strict TypeScript project-reference typecheck/build: passed.
 - Vitest: one file and two contract tests passed.
 - Documentation checks: passed across 22 Markdown files.
+
+## FND-004 — Node 24 CI and fresh-install evidence
+
+**Date:** 2026-07-28
+
+### Workflow delivered
+
+`.github/workflows/check.yml` has read-only repository permissions, a 15-minute job timeout, per-ref concurrency cancellation, Node from `.node-version` (24), npm caching, locked install, documentation validation, and the complete repository check. The earlier docs-only workflow was removed.
+
+### Observed host command
+
+```text
+npm ci && node scripts/check-docs.mjs && npm run check
+```
+
+**Observed result:** exit 0. npm installed 148 packages, audited 157 packages with 0 vulnerabilities, documentation validation passed, two Vitest contract tests passed, and formatting/lint/typecheck/build/boundary checks passed. npm emitted the expected engine warning because the host is Node v22.22.2.
+
+### Observed Node 24 clean-copy command
+
+A read-only repository mount was copied—excluding `.git`, `node_modules`, and `dist`—into a clean `node:24-bookworm-slim` container, then executed:
+
+```text
+npm ci
+node scripts/check-docs.mjs
+npm run check
+```
+
+**Observed environment:** Node v24.18.0, npm 11.16.0.
+
+**Observed result:** exit 0. Locked install added 148 packages, audit found 0 vulnerabilities, documentation checks passed, two tests passed, and formatting/lint/typecheck/build/simulation-boundary checks passed.
+
+### Workflow validation
+
+```text
+docker run --rm -v "$PWD:/repo:ro" -w /repo rhysd/actionlint:latest -color .github/workflows/check.yml
+```
+
+**Observed result:** exit 0 after setting the workflow file to mode 0644.
+
+Remote GitHub Actions execution remains unobserved until the commit is pushed; this evidence does not claim otherwise. TASK-001 remains foundation work only and does not implement a product vertical slice.
