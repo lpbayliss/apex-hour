@@ -28,7 +28,7 @@ Each TASK has one authoritative writer, explicit dependencies, allowed paths, ve
 - **Readiness:** Ready only after the follow-up specification gate passes, governing status/relevant ADRs are accepted, those docs are committed on `main`, and branch `feat/foundation` is clean.
 - **Depends on:** none.
 - **Bootstrap evidence only:** supports INT-001/SEC-006/QR-002; does not complete their production acceptance.
-- **Allowed paths:** root configs/lockfile, `.github/workflows/check.yml`, empty `apps/*`/`packages/*` package manifests and source/test placeholders, `.ralph/**`, `scripts/check-boundaries.mjs`, `scripts/ralph-bounded.sh`, and TASK-001 evidence.
+- **Allowed paths:** root configs/lockfile, `.github/workflows/check.yml`, empty `apps/*`/`packages/*` package manifests and source/test placeholders, `.ralph/prd.json`, `.ralph/progress.md`, `scripts/check-boundaries.mjs`, and TASK-001 evidence.
 - **Pinned baseline:** Node 24 LTS; TypeScript 7.0.2; Hono 4.12.32; tRPC 11.18.0; Vite 8.1.5; React 19.2.8; Zod 4.4.3; Vitest 4.1.10; ESLint 10.8.0; Prettier 3.9.6. Exact transitive versions come from committed `package-lock.json`.
 - **Steps:** npm workspaces; strict TS project references; format/lint/type/test/build/check scripts; package export maps; one Zod inference test; simulation forbidden-import/`Math.random` checker plus negative fixture; CI on Node 24.
 - **Verify:** `npm ci && npm run check`; deliberately run the negative boundary fixture and assert the intended failure.
@@ -181,4 +181,8 @@ Each TASK has one authoritative writer, explicit dependencies, allowed paths, ve
 
 ## Ralph iteration contract
 
-`.ralph/prd.json` decomposes the currently Ready task further. Each fresh process selects one dependency-ready story, obeys allowed paths, runs exact checks, records observed evidence in `.ralph/progress.md`, and commits only on success. Defaults: eight iterations, one task/iteration, two attempts/task, 30 minutes/iteration, mandatory Hermes review after at most three passed stories. Completion requires acceptance checks, commands, authorized paths, a new verified commit, and a clean tree—not textual `DONE`.
+`.ralph/prd.json` decomposes the currently Ready task further. Hermes loads the `bounded-ralph-loop` skill and executes stories directly in the current session using native file, terminal, browser, todo, and verification tools. It does not launch a shell loop, coding-agent subprocess, background worker, recursive Hermes process, cron job, or delegated implementer.
+
+Each iteration selects one dependency-ready story, obeys allowed paths, implements and exercises real behavior, runs exact checks, records observed evidence in `.ralph/progress.md`, and commits only on success. Defaults: at most three passed stories per user invocation, one story per commit, and two implementation attempts per story. Completion requires acceptance checks, runtime evidence where applicable, authorized paths, a new verified commit, and a clean tree—not text claims, dispatch, scaffolding, or placeholder modules. `.ralph/progress.md` and `docs/evidence/TASK-NNN.md` are implicitly allowed for every task.
+
+After each commit Hermes reassesses dependencies and context before continuing. It stops for user decisions, destructive/data-loss risk, unavailable verification, unrelated dirty work, two failed attempts, or the three-story checkpoint. Push, merge, deployment, publication, dependency expansion, and public/schema contract changes remain separate decisions unless the user explicitly included them.

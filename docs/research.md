@@ -16,8 +16,9 @@ Research date: 2026-07-28.
 
 - Geoffrey Huntley's [Ralph technique](https://ghuntley.com/ralph) uses fresh agent context, the same specification/plan each iteration, and one task per loop.
 - [`snarktank/ralph`](https://github.com/snarktank/ralph) demonstrates a PRD file with pass state, append-only progress, fresh agent invocations, and repository instructions.
+- Apex Hour keeps the useful durable PRD/progress and one-story evidence pattern, but executes it through Hermes' `bounded-ralph-loop` skill in the current session. External process loops proved brittle and could report control-plane activity without product implementation.
 
-Apex Hour will use the technique conservatively: bounded iterations, one accepted task per iteration, mandatory tests, a clean-worktree/branch guard, append-only progress, and stop conditions. It will not run an infinite shell loop.
+Apex Hour uses the technique conservatively: bounded iterations, one accepted task per iteration, mandatory tests, a clean-worktree/branch guard, append-only progress, and stop conditions. It does not run a shell or background coding-agent loop.
 
 ## Product and design boundary
 

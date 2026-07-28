@@ -38,3 +38,10 @@ Each passing entry includes: story ID, UTC timestamp, files changed, exact comma
 - Full formatting, TypeScript lint/typecheck, two contract tests, build, boundary check, and documentation checks passed.
 - Evidence appended to `docs/evidence/TASK-001.md`.
 - Commit: `build(TASK-001): add executable simulation boundary checks`.
+
+## Harness migration — 2026-07-28
+
+- External-process Ralph execution was retired after the shell/Claude path failed to deliver product code reliably.
+- Durable `.ralph/prd.json` and `.ralph/progress.md` remain; implementation now runs through the Hermes `bounded-ralph-loop` skill in the current session.
+- Removed `.ralph/PROMPT.md`, `scripts/ralph-bounded.sh`, and `scripts/ralph-state.mjs`.
+- This is a process correction, not a completed product story. FND-004 remains pending and no application vertical slice is claimed.

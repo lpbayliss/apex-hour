@@ -495,19 +495,11 @@ Interactive ownership, voting, betting, multiplayer, real-time chat between spec
 
 ## 12. Autonomous implementation safety
 
-A bounded Ralph-style loop may begin only for a task whose readiness/dependency gates are satisfied:
+A bounded Ralph-style loop may begin only for a task whose readiness/dependency gates are satisfied. Hermes must load the `bounded-ralph-loop` skill and execute the work itself in the current session using native tools; the skill is the harness. Shell loops, Claude/Codex CLIs, background coding agents, recursive Hermes processes, cron jobs, and delegated implementers are not valid execution paths.
 
-- fresh agent context each iteration;
-- same `AGENTS.md`, this specification, implementation plan, PRD, and append-only progress loaded every iteration;
-- exactly one highest-priority unpassed task;
-- maximum configured iterations/time budget; never `while :`;
-- work only on a dedicated feature branch;
-- tests and clean diff required before a task passes;
-- one small commit per completed task;
-- stop on failed quality gate, repeated failure threshold, dirty/unexplained state, destructive migration, unresolved public contract, security/privacy boundary, data-loss risk, or need to change fixed requirements;
-- Hermes independently reviews diffs and reruns verification before merge/push claims.
+For each story Hermes loads `AGENTS.md`, this specification, the implementation plan, `.ralph/prd.json`, and append-only progress; selects exactly one highest-priority dependency-ready story; obeys its allowed paths; implements and exercises the behavior; runs exact story and repository checks; records only observed evidence; and creates one small verified commit. Dispatch, generated scaffolding, empty modules, status edits, and prose claims do not count as implementation.
 
-Default loop limits are eight iterations per invocation, one task per iteration, two attempts on the same task, 30 minutes per iteration, and a mandatory Hermes review after at most three completed tasks. A task may additionally enforce an allowed-path and changed-line budget. No loop may survive its controlling process or deploy, publish releases, force-push, rewrite history, weaken tests, add dependencies, or alter schemas/public contracts without leaving the loop for review.
+Default limits are at most three completed stories per user invocation, one story per commit, and two implementation attempts per story. Hermes reassesses repository state after each commit and stops for a decision, security boundary, destructive migration, data-loss risk, schema/public contract change, unavailable verification, unrelated dirty state, exhausted attempt limit, user interruption, or the three-story checkpoint. Push, merge, deploy, publish, force-push, history rewrite, test weakening, and unplanned dependency additions require separate authorization or an explicit accepted task.
 
 ## 13. Acceptance and maintenance
 
@@ -522,3 +514,4 @@ Default loop limits are eight iterations per invocation, one task per iteration,
 - 2026-07-28: Added normative domain/operations annexes, traceability, ADR-0006–0008, and review dispositions after the initial independent gate.
 - 2026-07-28: Resolved follow-up cursor, transition, canonicalization, fencing, HTTP, migration, task-governance, and evidence findings.
 - 2026-07-28: Final combined review passed; specification accepted. ADR-0004 remains transport-spike gated.
+- 2026-07-28: Replaced the failed external-process Ralph harness with the native Hermes `bounded-ralph-loop` skill; clarified that only verified behavior, not scaffolding or dispatch, counts as execution.

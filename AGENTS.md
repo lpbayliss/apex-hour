@@ -19,10 +19,13 @@
 ## Working method
 
 - Work on one accepted task per iteration.
+- For Ralph/autonomous backlog work, load the Hermes `bounded-ralph-loop` skill and execute the iteration directly in the current Hermes session.
+- Do not launch shell loops, Claude/Codex CLIs, background coding agents, recursive Hermes sessions, or scheduled jobs to implement Ralph stories.
 - Keep commits small and independently verifiable.
 - Add or update tests before declaring a task complete.
 - Run the repository checks named in `docs/implementation-plan.md`.
 - Record new durable build/run knowledge here; record task progress in `.ralph/progress.md`.
+- Foundation scaffolding and placeholder entrypoints are not a product vertical slice; report them as foundation only.
 - Stop for unresolved destructive migration, public contract, data-loss, privacy, or hard-to-rollback decisions.
 
 ## Forbidden
