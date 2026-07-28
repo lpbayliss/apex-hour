@@ -1,0 +1,26 @@
+mode: production
+server:
+  publicOrigin: https://apex-hour.example
+  port: 3000
+  allowedOrigins: []
+  trustedProxy:
+    enabled: false
+    cidrs: []
+database:
+  path: /data/apex-hour.sqlite3
+backup:
+  directory: /backup
+config:
+  file: /config/apex-hour.yaml
+  maximumFileBytes: 1048576
+metrics:
+  enabled: false
+  bearerToken: null
+simulation:
+  raceIntervalSeconds: 3600
+  liveDurationSeconds: 2700
+paths:
+  dataRoot: /data
+  configRoot: /config
+  backupRoot: /backup
+  allowOutsideRootsInDevelopment: false

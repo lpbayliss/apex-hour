@@ -95,3 +95,14 @@ Each passing entry includes: story ID, UTC timestamp, files changed, exact comma
 - Observed `npm run test --workspace @apex-hour/contracts`: 10 tests passed.
 - Observed package ESLint, `npm run typecheck`, and full `npm run check`: passed.
 - Commit: `feat(TASK-003): define canonical event contracts`.
+
+## TASK-003 / CFG-001 — 2026-07-28
+
+- Added one strict inferred `AppConfig` schema with code-owned production defaults and cross-field live-duration/development-override/path constraints.
+- Added recursive defaults < failsafe YAML < `APEX_HOUR__...` environment resolution; objects recurse, scalars replace, and arrays replace whole arrays.
+- Added schema-directed decoding for exact booleans, finite decimals, explicit nullable `null`, JSON arrays/objects, strings, and the one explicit empty-to-null config-file field.
+- YAML now rejects duplicate keys, custom tags, aliases, non-object roots, and oversized input. Missing optional default files are allowed; explicit missing/unreadable files fail with stable codes.
+- Effective source provenance is recorded at leaf fields and validation/parser errors expose safe code/path diagnostics without arbitrary rejected values.
+- Added `.env.example` and `config.example.yaml` matching the root schema.
+- Observed `npm run test --workspace @apex-hour/config`: 16 tests passed; package ESLint, `npm run typecheck`, and full `npm run check` passed; npm audit found 0 vulnerabilities.
+- Commit: `feat(TASK-003): implement strict config resolution`.

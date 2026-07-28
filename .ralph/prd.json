@@ -24,8 +24,8 @@
       "id": "CFG-001",
       "priority": 2,
       "title": "Implement strict YAML and environment config resolution",
-      "status": "pending",
-      "attempts": 0,
+      "status": "passed",
+      "attempts": 1,
       "dependsOn": ["CTR-001"],
       "allowedPrefixes": [
         "packages/config/",
