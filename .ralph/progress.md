@@ -65,3 +65,13 @@ Each passing entry includes: story ID, UTC timestamp, files changed, exact comma
 - Observed `npm run spike:transport:server`: strict TypeScript check and 1 real-wire Vitest test passed.
 - Observed spike Prettier and ESLint checks passed; npm audit reported 0 vulnerabilities.
 - Commit: `test(TASK-002): wire Hono tRPC tracked SSE server`.
+
+## TASK-002 / TRN-002 — 2026-07-28
+
+- Added a Vite-built browser client using tRPC `httpSubscriptionLink` and native browser EventSource.
+- Added a real Vite preview reverse-proxy fixture that streams `/trpc`, preserves `text/event-stream`, forces `X-Accel-Buffering: no`, applies `no-transform`, and has a two-second proxy idle bound kept alive by 100 ms tRPC heartbeats.
+- Installed pinned `@playwright/test` 1.62.0 and its Chromium 151 runtime.
+- Observed `npm run spike:transport:browser`: strict TypeScript and one actual headless Chromium wire test passed.
+- Browser received cursors 1–2, unsubscribed and released the server listener, then reconnected with cursor 2 and received 3–4 with no gaps or duplicates; proxy streaming headers were observed in the browser response.
+- Spike Prettier and ESLint checks passed.
+- Commit: `test(TASK-002): prove Vite proxy browser reconnect`.

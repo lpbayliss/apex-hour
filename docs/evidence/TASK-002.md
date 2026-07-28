@@ -42,4 +42,40 @@ git diff --check
 | `zod`               |   4.4.3 | subscription input validation      |
 | Vitest              |  4.1.10 | executable wire test               |
 
-Browser, proxy, reconnect, overflow, and post-header terminal-error evidence remain pending in TRN-002/TRN-003.
+Browser, proxy, reconnect, and abort behavior are observed in TRN-002; overflow and post-header terminal-error evidence remain pending in TRN-003.
+
+## TRN-002 — Vite client, streaming proxy, and Playwright reconnect
+
+**Date:** 2026-07-28
+
+### Delivered
+
+- Vite 8.1.5 builds a browser client using tRPC 11.18.0 `httpSubscriptionLink` and native browser EventSource.
+- Vite preview runs as a real reverse proxy for `/trpc`; it preserves streaming, sets `X-Accel-Buffering: no` and `Cache-Control: no-cache, no-transform`, and uses a two-second proxy timeout while server heartbeats arrive every 100 ms.
+- Pinned `@playwright/test` 1.62.0 launches downloaded Chromium 151.0.7922.34.
+
+### Observed command
+
+```text
+npm install
+npx playwright install chromium
+npx prettier --write 'spikes/trpc-hono-sse/**/*.{html,json,ts}' package.json package-lock.json .ralph/prd.json
+npx eslint 'spikes/trpc-hono-sse/**/*.ts'
+npm run spike:transport:browser
+git diff --check
+```
+
+**Observed result:** exit 0. Strict TypeScript passed. An actual headless Chromium page loaded the Vite-built client through the proxy, observed tracked cursors 1–2, unsubscribed and reduced the server listener count to zero, inserted events 3–4 while disconnected, then reconnected from cursor 2 and received 3–4 without gaps or duplicates. The browser response exposed `text/event-stream`, `X-Accel-Buffering: no`, and `no-transform`. No client errors were observed.
+
+### Matrix update
+
+| Case                                          | Status          |
+| --------------------------------------------- | --------------- |
+| Vite production build                         | observed pass   |
+| Actual browser through proxy                  | observed pass   |
+| Exact tracked-cursor reconnect                | observed pass   |
+| Browser abort/listener cleanup                | observed pass   |
+| Proxy buffering headers                       | observed pass   |
+| Heartbeat survives bounded proxy idle timeout | observed pass   |
+| Queue overflow/resume                         | pending TRN-003 |
+| Terminal error after headers                  | pending TRN-003 |

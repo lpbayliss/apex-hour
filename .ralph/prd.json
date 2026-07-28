@@ -31,8 +31,8 @@
       "id": "TRN-002",
       "priority": 2,
       "title": "Drive the Vite client through a streaming proxy in Playwright",
-      "status": "pending",
-      "attempts": 0,
+      "status": "passed",
+      "attempts": 1,
       "dependsOn": ["TRN-001"],
       "allowedPrefixes": [
         "spikes/trpc-hono-sse/",

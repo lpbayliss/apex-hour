@@ -24,6 +24,7 @@
     "test:boundaries": "node scripts/check-boundaries.mjs --self-test",
     "check:boundaries": "node scripts/check-boundaries.mjs",
     "spike:transport:server": "tsc -p spikes/trpc-hono-sse/tsconfig.json --pretty false && vitest run --config spikes/trpc-hono-sse/vitest.config.ts test/server.wire.test.ts",
+    "spike:transport:browser": "tsc -p spikes/trpc-hono-sse/tsconfig.json --pretty false && vitest run --config spikes/trpc-hono-sse/vitest.config.ts test/browser.wire.test.ts",
     "build": "tsc -b --pretty false",
     "check": "npm run format:check && npm run lint && npm run typecheck && npm run test && npm run build && npm run check:boundaries"
   },
