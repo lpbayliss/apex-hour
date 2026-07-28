@@ -86,3 +86,12 @@ Each passing entry includes: story ID, UTC timestamp, files changed, exact comma
 - Repeated the complete spike in `mcr.microsoft.com/playwright:v1.62.0-noble` on Node v24.18.0/npm 11.16.0 after a clean `npm ci`; all 4 tests passed and audit found 0 vulnerabilities.
 - Recorded the exact matrix and accepted ADR-0004 with the official tRPC Fetch adapter. No second adapter was added because the preferred adapter passed every decision case.
 - Commit: `test(TASK-002): accept tracked SSE transport spike`.
+
+## TASK-003 / CTR-001 — 2026-07-28
+
+- Added strict Zod schemas and inferred branded types for aggregate/context IDs, event IDs, command/correlation IDs, ratings, and all required rider rating fields.
+- Added a typed canonical event-envelope factory covering deterministic aggregate identity/order, context, event/schema/ruleset/catalog versions, logical/planned time, command/idempotency/causation/correlation identity, and validated payload.
+- Added distinct aggregate-event and tracked race-feed cursor schemas plus stable `EVENT_CURSOR_INVALID`, `EVENT_CURSOR_AHEAD`, and `EVENT_CURSOR_EXPIRED` validation results.
+- Observed `npm run test --workspace @apex-hour/contracts`: 10 tests passed.
+- Observed package ESLint, `npm run typecheck`, and full `npm run check`: passed.
+- Commit: `feat(TASK-003): define canonical event contracts`.

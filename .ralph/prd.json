@@ -1,78 +1,70 @@
 {
-  "task": "TASK-002",
-  "title": "Real-wire Hono/tRPC tracked-SSE spike",
+  "task": "TASK-003",
+  "title": "Core Zod IDs, event envelope, and config schemas",
   "branch": "main",
   "maxIterationsPerRun": 3,
   "maxAttemptsPerStory": 2,
   "stories": [
     {
-      "id": "TRN-001",
+      "id": "CTR-001",
       "priority": 1,
-      "title": "Wire Hono to the official tRPC Fetch adapter",
+      "title": "Define branded IDs, ratings, canonical events, and cursors",
       "status": "passed",
       "attempts": 1,
       "dependsOn": [],
-      "allowedPrefixes": [
-        "spikes/trpc-hono-sse/",
-        "package.json",
-        "package-lock.json",
-        ".ralph/",
-        "docs/evidence/"
-      ],
+      "allowedPrefixes": ["packages/contracts/", ".ralph/", "docs/evidence/"],
       "acceptance": [
-        "A real ephemeral Node HTTP server mounts a tRPC query and tracked SSE subscription through Hono using the official Fetch adapter",
-        "The in-memory DB-style store uses bounded catch-up pages and race-scoped publication cursors",
-        "The subscription registers its listener before capturing the high-water mark and preserves deterministic catch-up/live ordering",
-        "Focused wire tests prove query, content type, tracked cursor, event insertion during catch-up, duplicate suppression, and abort cleanup"
+        "Zod schemas define branded aggregate/context IDs and 0-100 rating primitives with inferred TypeScript types",
+        "A strict canonical aggregate event envelope validates deterministic event ID, aggregate identity, positive stream order, versions, logical time, command/idempotency/correlation identity, optional context, and typed payload",
+        "Race-feed cursor helpers distinguish aggregate event IDs from publication cursors and return stable invalid, ahead, and expired codes"
       ],
-      "verify": "npm run spike:transport:server"
+      "verify": "npm run test --workspace @apex-hour/contracts && npm run typecheck"
     },
     {
-      "id": "TRN-002",
+      "id": "CFG-001",
       "priority": 2,
-      "title": "Drive the Vite client through a streaming proxy in Playwright",
-      "status": "passed",
-      "attempts": 1,
-      "dependsOn": ["TRN-001"],
+      "title": "Implement strict YAML and environment config resolution",
+      "status": "pending",
+      "attempts": 0,
+      "dependsOn": ["CTR-001"],
       "allowedPrefixes": [
-        "spikes/trpc-hono-sse/",
-        "package.json",
+        "packages/config/",
         "package-lock.json",
+        ".env.example",
+        "config.example.yaml",
         ".ralph/",
         "docs/evidence/"
       ],
       "acceptance": [
-        "Vite builds the browser client and an actual Chromium page connects with tRPC httpSubscriptionLink through a real reverse-proxy fixture",
-        "The proxy disables SSE buffering and preserves heartbeat/idle streaming headers",
-        "Browser reconnect resumes from the exact tracked cursor without gaps or duplicates",
-        "Browser unsubscribe aborts the server subscription and releases its listener"
+        "One strict Zod root schema and inferred AppConfig merge defaults then optional YAML then APEX_HOUR environment leaves with arrays replaced",
+        "YAML rejects duplicate keys, custom tags, aliases, expansion, oversized files, missing configured files, and unsafe values",
+        "Environment decoding accepts only schema-directed boolean, finite decimal, null, JSON array/object, or string values and rejects unknown prefixed variables",
+        "Final leaf provenance is retained and safe diagnostics do not echo arbitrary rejected values"
       ],
-      "verify": "npm run spike:transport:browser"
+      "verify": "npm run test --workspace @apex-hour/config && npm run typecheck"
     },
     {
-      "id": "TRN-003",
+      "id": "CFG-002",
       "priority": 3,
-      "title": "Complete the transport resilience matrix and decision record",
-      "status": "passed",
-      "attempts": 1,
-      "dependsOn": ["TRN-002"],
+      "title": "Complete config metadata, redaction, path, and compatibility fixtures",
+      "status": "pending",
+      "attempts": 0,
+      "dependsOn": ["CFG-001"],
       "allowedPrefixes": [
-        "spikes/trpc-hono-sse/",
-        "package.json",
-        "package-lock.json",
+        "packages/contracts/",
+        "packages/config/",
+        ".env.example",
+        "config.example.yaml",
         ".ralph/",
-        "docs/evidence/",
-        "docs/spikes/trpc-hono-sse.md",
-        "docs/adr/0004-trpc-sse.md",
-        "scripts/check-docs.mjs"
+        "docs/evidence/"
       ],
       "acceptance": [
-        "Wire tests cover bounded queue overflow with resumable cursor, heartbeat/idle behavior, terminal error after headers, and proxy cleanup",
-        "npm run spike:transport starts all fixtures, drives the real browser, runs the complete matrix, and exits cleanly",
-        "The exact adapter/version matrix and observed evidence are recorded",
-        "ADR-0004 is accepted only if every named TASK-002 wire case passes"
+        "Schema metadata recursively marks secrets and filesystem-sensitive paths for redacted effective-config serialization",
+        "Production database, config, and backup paths resolve inside allowlisted roots while the named development-only override is rejected in production",
+        "Compatibility fixtures cover additive event fields, version material, nested arrays, URL credentials, embedded tokens, paths, parser failures, and every operations configuration boundary row",
+        "No duplicate handwritten public TypeScript shape exists where a Zod schema is authoritative"
       ],
-      "verify": "npm run spike:transport && npm run check"
+      "verify": "npm run test --workspace @apex-hour/contracts && npm run test --workspace @apex-hour/config && npm run typecheck && npm run check"
     }
   ]
 }
